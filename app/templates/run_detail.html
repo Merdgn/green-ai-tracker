@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">Çalışma Detayı (Run #{{ run.id }})</h2>
+
+<!-- Run Info -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">Run Bilgileri</div>
+    <div class="card-body">
+        <p><strong>Model:</strong> {{ run.model_name }}</p>
+        <p><strong>Cihaz ID:</strong> {{ run.device_id }}</p>
+        <p><strong>Kullanıcı ID:</strong> {{ run.user_id }}</p>
+        <p><strong>Başlangıç:</strong> {{ run.started_at }}</p>
+        <p><strong>Bitiş:</strong> {{ run.ended_at }}</p>
+        <p><strong>Notlar:</strong> {{ run.notes }}</p>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        CPU / GPU Anlık Grafikleri
+    </div>
+    <div class="card-body">
+        <canvas id="cpuChart" height="80"></canvas>
+        <canvas id="gpuChart" height="80" class="mt-4"></canvas>
+    </div>
+</div>
+
+<!-- Metrics -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">Metrikler</div>
+    <div class="card-body">
+        {% if metrics %}
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Zaman</th>
+                        <th>CPU (%)</th>
+                        <th>GPU (%)</th>
+                        <th>Güç (W)</th>
+                        <th>RAM (MB)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in metrics %}
+                    <tr>
+                        <td>{{ m.ts }}</td>
+                        <td>{{ m.cpu_util }}</td>
+                        <td>{{ m.gpu_util }}</td>
+                        <td>{{ m.gpu_power_w }}</td>
+                        <td>{{ m.mem_used_mb }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">Henüz metrik yok.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Emissions -->
+<div class="card mb-4">
+    <div class="card-header bg-warning">Karbon ve Enerji</div>
+    <div class="card-body">
+        {% if emission %}
+            <p><strong>Enerji (kWh):</strong> {{ emission.energy_kwh }}</p>
+            <p><strong>Emisyon (kg):</strong> {{ emission.emission_kg }}</p>
+            <p><strong>Bölge Kodu:</strong> {{ emission.region_code }}</p>
+        {% else %}
+            <p class="text-muted">Henüz emisyon bilgisi yok.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        startCharts("{{ run.id }}");
+    });
+</script>
+
+{% endblock %}

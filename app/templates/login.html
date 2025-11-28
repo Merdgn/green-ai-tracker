@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 450px;">
+
+    <h3 class="text-center mb-4">🔐 Giriş Yap</h3>
+
+    <div class="card shadow p-4">
+        <form method="POST" action="/login">
+            <div class="mb-3">
+                <label class="form-label">Kullanıcı Adı</label>
+                <input name="name" type="text" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">API Key</label>
+                <input name="api_key" type="password" class="form-control" required>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-dark w-100">Giriş Yap</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Dashboard Genel İstatistikler</h2>
+
+    <!-- ===== KARTLAR ===== -->
+    <div id="stats-cards" class="row g-3 mb-4">
+        <!-- JS ile doldurulacak -->
+    </div>
+
+    <!-- ===== CPU / GPU ORTALAMA GRAFİKLER ===== -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <canvas id="cpuChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="gpuChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ===== SON 5 RUN ===== -->
+    <h3>Son 5 Run</h3>
+    <table class="table table-striped mb-5" id="recentRunsTable">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Model</th>
+                <th>Kullanıcı</th>
+                <th>Başlangıç</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- JS ile doldurulacak -->
+        </tbody>
+    </table>
+
+    <!-- ===== TÜM RUN LİSTESİ ===== -->
+    <h3 class="mb-4">📊 Tüm Çalışmalar (Runs)</h3>
+
+    <table class="table table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Device ID</th>
+                <th>Model</th>
+                <th>Started</th>
+                <th>Ended</th>
+                <th>Detay</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for run in runs %}
+            <tr>
+                <td>{{ run.id }}</td>
+                <td>{{ run.user_id }}</td>
+                <td>{{ run.device_id }}</td>
+                <td>{{ run.model_name }}</td>
+                <td>{{ run.started_at }}</td>
+                <td>{{ run.ended_at if run.ended_at else "-" }}</td>
+                <td>
+                    <a class="btn btn-primary btn-sm" href="/run/{{ run.id }}">Görüntüle</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Dashboard API'den veriyi çek
+fetch("/dashboard/stats")
+    .then(res => res.json())
+    .then(data => {
+
+        // ==== KARTLARI YAZDIR ====
+        document.getElementById("stats-cards").innerHTML = `
+            <div class="col-md-2"><div class="card p-3 bg-primary text-white"><h5>Kullanıcı</h5><h3>${data.total_users}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-success text-white"><h5>Cihaz</h5><h3>${data.total_devices}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-info text-white"><h5>Run</h5><h3>${data.total_runs}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-warning text-white"><h5>Metrik</h5><h3>${data.total_metrics}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-danger text-white"><h5>Emisyon (kg)</h5><h3>${data.total_emission_kg.toFixed(4)}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-dark text-white"><h5>Popüler Model</h5><h4>${data.popular_model.name ?? "-"}</h4></div></div>
+        `;
+
+        // ==== CPU GRAFİK ====
+        new Chart(document.getElementById("cpuChart"), {
+            type: "line",
+            data: {
+                labels: ["CPU Ortalama"],
+                datasets: [{
+                    label: "CPU (%)",
+                    data: [data.avg_cpu],
+                    borderColor: "blue",
+                    borderWidth: 2
+                }]
+            }
+        });
+
+        // ==== GPU GRAFİK ====
+        new Chart(document.getElementById("gpuChart"), {
+            type: "line",
+            data: {
+                labels: ["GPU Ortalama"],
+                datasets: [{
+                    label: "GPU (%)",
+                    data: [data.avg_gpu],
+                    borderColor: "red",
+                    borderWidth: 2
+                }]
+            }
+        });
+
+        // ==== SON 5 RUN TABLOSU ====
+        let tbody = "";
+        data.recent_runs.forEach(r => {
+            tbody += `
+                <tr>
+                    <td>${r.id}</td>
+                    <td>${r.model_name}</td>
+                    <td>${r.user_id}</td>
+                    <td>${r.started_at}</td>
+                </tr>
+            `;
+        });
+        document.querySelector("#recentRunsTable tbody").innerHTML = tbody;
+
+    });
+</script>
+
+{% endblock %}
