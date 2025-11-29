@@ -6,6 +6,38 @@
 
     <h2 class="mb-4">Dashboard Genel İstatistikler</h2>
 
+    <!-- ÜST KARTLAR -->
+    <div class="row g-3 mb-4">
+        <!-- Sistem Canlı İzleme -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🖥️ Sistem Canlı İzleme</h5>
+                    <p class="card-text text-muted">
+                        Tüm CPU / GPU / RAM ölçümlerini gerçek zamanlı izle
+                    </p>
+                    <a href="/monitor" class="btn btn-primary w-100">Canlı İzleme Paneli</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Run ID ile Canlı İzleme -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🧠 Run ID ile Canlı İzleme</h5>
+                    <p class="card-text text-muted">
+                        Belirli bir çalışmanın detay ve canlı grafiğini görüntüle
+                    </p>
+                    <div class="input-group">
+                        <input id="runIdInput" type="number" class="form-control" placeholder="Run ID gir" />
+                        <button id="runIdGoBtn" class="btn btn-success">İncele</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== KARTLAR ===== -->
     <div id="stats-cards" class="row g-3 mb-4">
         <!-- JS ile doldurulacak -->
@@ -30,6 +62,7 @@
                 <th>Model</th>
                 <th>Kullanıcı</th>
                 <th>Başlangıç</th>
+                <th>İncele</th>
             </tr>
         </thead>
         <tbody>
@@ -94,12 +127,22 @@ fetch("/dashboard/stats")
                     <td>${r.model_name}</td>
                     <td>${r.user_id}</td>
                     <td>${r.started_at}</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" href="/run/${r.id}">İncele</a>
+                    </td>
                 </tr>
             `;
         });
         document.querySelector("#recentRunsTable tbody").innerHTML = tbody;
 
     });
+
+// Run ID input -> İncele butonu
+document.getElementById("runIdGoBtn").addEventListener("click", () => {
+    const val = document.getElementById("runIdInput").value;
+    if (!val) return;
+    window.location.href = `/run/${val}`;
+});
 </script>
 
 {% endblock %}

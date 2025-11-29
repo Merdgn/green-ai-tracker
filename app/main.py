@@ -19,9 +19,8 @@ from sqlalchemy.orm import Session
 from app.database import engine, get_db
 from app import models
 from app.routes import auth_routes, user_routes, devices, runs, metrics, emissions, dashboard
+from app.routes import monitor  # sistem canlı izleme
 from app.utils.auth import verify_api_key, create_access_token, decode_access_token
-from app.routes import monitor
-
 
 # ============================
 # Template klasörü
@@ -34,6 +33,7 @@ templates = Jinja2Templates(directory="app/templates")
 app = FastAPI(title="Green AI Tracker")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 
 # ============================
 # Swagger Bearer Auth
@@ -62,6 +62,7 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
+
 # ============================
 # Router'lar
 # ============================
@@ -75,11 +76,11 @@ app.include_router(dashboard.router)
 app.include_router(monitor.router)
 
 
-
 # ============================
 # DB tablolarını oluştur
 # ============================
 models.Base.metadata.create_all(bind=engine)
+
 
 # ============================
 # Yardımcı: Cookie'den kullanıcıyı çöz
@@ -88,7 +89,7 @@ def get_current_user_from_cookie(
     request: Request,
     db: Session = Depends(get_db),
 ) -> models.User:
-    token = request.cookies.get("session_token")  # ← DÜZELTİLMİŞ
+    token = request.cookies.get("session_token")
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -121,10 +122,44 @@ def get_current_user_from_cookie(
 
 
 # ============================
+# MIDDLEWARE: request.state.current_user
+# ============================
+@app.middleware("request")
+async def add_current_user(request: Request, call_next):
+    """
+    Tüm isteklerde cookie'deki token'i çöz ve
+    request.state.current_user içine kullanıcıyı koy.
+    (Login olmayanlarda None olur.)
+    """
+    request.state.current_user = None
+
+    token = request.cookies.get("session_token")
+    if token:
+        payload = decode_access_token(token)
+        if payload:
+            user_id = payload.get("sub")
+            # Kısa bir DB oturumu açıp kullanıcıyı bul
+            db_gen = get_db()
+            db = next(db_gen)
+            try:
+                user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+                request.state.current_user = user
+            finally:
+                db.close()
+
+    response = await call_next(request)
+    return response
+
+
+# ============================
 # HTML LOGIN PAGE (GET)
 # ============================
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
+    # Zaten login'liyse direkt dashboard'a gönder
+    if getattr(request.state, "current_user", None):
+        return RedirectResponse("/", status_code=302)
+
     return templates.TemplateResponse("login.html", {"request": request})
 
 
@@ -136,7 +171,7 @@ def login_submit(
     request: Request,
     db: Session = Depends(get_db),
     name: str = Form(...),
-    api_key: str = Form(...)
+    api_key: str = Form(...),
 ):
     # Kullanıcıyı bul
     user = db.query(models.User).filter(models.User.name == name).first()
@@ -144,7 +179,7 @@ def login_submit(
     if not user or not verify_api_key(api_key, user.api_key_hash):
         return templates.TemplateResponse(
             "login.html",
-            {"request": request, "error": "Kullanıcı adı veya API Key hatalı!"}
+            {"request": request, "error": "Kullanıcı adı veya API Key hatalı!"},
         )
 
     # JWT üret
@@ -156,7 +191,7 @@ def login_submit(
         key="session_token",
         value=token,
         httponly=True,
-        max_age=60 * 60
+        max_age=60 * 60,
     )
 
     return response
@@ -167,44 +202,28 @@ def login_submit(
 # ============================
 @app.get("/logout")
 def logout():
-    response = RedirectResponse("/", status_code=302)
+    response = RedirectResponse("/login", status_code=302)
     response.delete_cookie("session_token")
     return response
 
 
-
 # ============================
-# Dashboard (GENEL ÖZET) – Herkese açık
+# Dashboard (GENEL ÖZET) – Login ZORUNLU
 # ============================
 @app.get("/", response_class=HTMLResponse)
 def dashboard_page(request: Request):
     """
     Genel istatistiklerin ve son 5 run'ın olduğu ana sayfa.
-    JavaScript, /dashboard/stats endpoint'inden veriyi çekiyor.
-    (Bu endpoint dashboard router'ında tanımlı.)
+    Login olmayanlar /login sayfasına yönlendirilir.
     """
+    if not getattr(request.state, "current_user", None):
+        return RedirectResponse("/login", status_code=302)
+
     return templates.TemplateResponse(
         "index.html",
         {"request": request},
     )
 
-# ============================
-# COOKIE → CURRENT USER ÇÖZÜMLEME
-# ============================
-@app.middleware("request")
-async def add_current_user(request: Request, call_next):
-    token = request.cookies.get("session_token")
-    request.state.current_user = None
-
-    if token:
-        payload = decode_access_token(token)
-        if payload:
-            user_id = payload.get("sub")
-            user = next(get_db()).query(models.User).filter(models.User.id == int(user_id)).first()
-            request.state.current_user = user
-
-    response = await call_next(request)
-    return response
 
 # ============================
 # RUN DETAIL PAGE – Login zorunlu
@@ -214,14 +233,16 @@ def run_detail(
     run_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user_from_cookie),
 ):
-    run = db.query(models.Run).filter(models.Run.id == run_id).first()
-    metrics = db.query(models.Metric).filter(models.Metric.run_id == run_id).all()
-    emission = db.query(models.Emission).filter(models.Emission.run_id == run_id).first()
+    if not getattr(request.state, "current_user", None):
+        return RedirectResponse("/login", status_code=302)
 
+    run = db.query(models.Run).filter(models.Run.id == run_id).first()
     if not run:
         raise HTTPException(status_code=404, detail="Run bulunamadı")
+
+    metrics = db.query(models.Metric).filter(models.Metric.run_id == run_id).all()
+    emission = db.query(models.Emission).filter(models.Emission.run_id == run_id).first()
 
     return templates.TemplateResponse(
         "run_detail.html",
@@ -237,13 +258,14 @@ def run_detail(
 # ============================
 # LIST PAGES FOR RUNS / DEVICES / USERS – Login zorunlu
 # ============================
-
 @app.get("/runs/list", response_class=HTMLResponse)
 def runs_list(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user_from_cookie),
 ):
+    if not getattr(request.state, "current_user", None):
+        return RedirectResponse("/login", status_code=302)
+
     runs = db.query(models.Run).all()
     return templates.TemplateResponse(
         "runs_list.html",
@@ -255,8 +277,10 @@ def runs_list(
 def devices_list(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user_from_cookie),
 ):
+    if not getattr(request.state, "current_user", None):
+        return RedirectResponse("/login", status_code=302)
+
     devices = db.query(models.Device).all()
     return templates.TemplateResponse(
         "devices_list.html",
@@ -268,8 +292,10 @@ def devices_list(
 def users_list(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user_from_cookie),
 ):
+    if not getattr(request.state, "current_user", None):
+        return RedirectResponse("/login", status_code=302)
+
     users = db.query(models.User).all()
     return templates.TemplateResponse(
         "users_list.html",

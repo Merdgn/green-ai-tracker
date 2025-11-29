@@ -27,7 +27,7 @@
                 <td>{{ run.started_at }}</td>
                 <td>{{ run.ended_at if run.ended_at else "-" }}</td>
                 <td>
-                    <a class="btn btn-primary btn-sm" href="/runs/{{ run.id }}">Görüntüle</a>
+                    <a class="btn btn-primary btn-sm" href="/run/{{ run.id }}">Görüntüle</a>
                 </td>
             </tr>
             {% endfor %}

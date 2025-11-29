@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">🖥️ Sistem Canlı İzleme Paneli</h2>
+
+    <p class="text-muted">
+        CPU / GPU / RAM değerleri her 1 saniyede bir otomatik güncellenir.
+    </p>
+
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card shadow p-3">
+                <h5 class="text-center">CPU Kullanımı (%)</h5>
+                <canvas id="cpuChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow p-3">
+                <h5 class="text-center">GPU Kullanımı (%)</h5>
+                <canvas id="gpuChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow p-3">
+                <h5 class="text-center">RAM Kullanımı (MB)</h5>
+                <canvas id="ramChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow p-3">
+                <h5 class="text-center">GPU Güç Tüketimi (W)</h5>
+                <canvas id="powerChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let cpuChart, gpuChart, ramChart, powerChart;
+
+function createChart(ctx, label, color) {
+    return new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: [],
+            datasets: [{
+                label: label,
+                data: [],
+                borderColor: color,
+                borderWidth: 2,
+                tension: 0.2
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            scales: {
+                x: { ticks: { color: "#666" } },
+                y: { ticks: { color: "#666" } },
+            }
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    cpuChart   = createChart(document.getElementById("cpuChart"),   "CPU (%)",       "#ff6384");
+    gpuChart   = createChart(document.getElementById("gpuChart"),   "GPU (%)",       "#36a2eb");
+    ramChart   = createChart(document.getElementById("ramChart"),   "RAM (MB)",      "#ffcd56");
+    powerChart = createChart(document.getElementById("powerChart"), "Güç (W)",       "#4bc0c0");
+
+    setInterval(async () => {
+        const res  = await fetch("/monitor/live");   // ← endpoint düzeltildi
+        const data = await res.json();
+
+        const t = new Date().toLocaleTimeString();  // zaman etiketi
+
+        cpuChart.data.labels.push(t);
+        gpuChart.data.labels.push(t);
+        ramChart.data.labels.push(t);
+        powerChart.data.labels.push(t);
+
+        cpuChart.data.datasets[0].data.push(data.cpu);
+        gpuChart.data.datasets[0].data.push(data.gpu);
+        ramChart.data.datasets[0].data.push(data.ram);
+        powerChart.data.datasets[0].data.push(data.power);
+
+        cpuChart.update();
+        gpuChart.update();
+        ramChart.update();
+        powerChart.update();
+    }, 1000);
+});
+</script>
+
+{% endblock %}
