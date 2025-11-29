@@ -91,7 +91,6 @@ def stop_run(run_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-
     energy_kwh, emission_kg = compute_run_energy_and_emission(metrics, region="TR")
 
     emission_record = models.Emission(
@@ -104,3 +103,36 @@ def stop_run(run_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return run
+
+
+# ============================
+# 5) CANLI METRİK ENDPOINTİ
+# ============================
+@router.get("/{run_id}/live")
+def get_live_metrics(run_id: int, db: Session = Depends(get_db)):
+
+    metrics = (
+        db.query(models.Metric)
+        .filter(models.Metric.run_id == run_id)
+        .order_by(models.Metric.ts.asc())
+        .all()
+    )
+
+    run = db.query(models.Run).filter(models.Run.id == run_id).first()
+
+    if not run:
+        raise HTTPException(status_code=404, detail="Run bulunamadı")
+
+    return {
+        "status": "running" if run.ended_at is None else "finished",
+        "metrics": [
+            {
+                "time": m.ts.isoformat(),
+                "cpu": m.cpu_util,
+                "gpu": m.gpu_util,
+                "ram": m.mem_used_mb,
+                "power": m.gpu_power_w
+            }
+            for m in metrics
+        ]
+    }

@@ -17,68 +17,99 @@
     </div>
 </div>
 
-<!-- Charts -->
-<div class="card mb-4">
-    <div class="card-header bg-info text-white">
-        CPU / GPU Anlık Grafikleri
-    </div>
-    <div class="card-body">
-        <canvas id="cpuChart" height="80"></canvas>
-        <canvas id="gpuChart" height="80" class="mt-4"></canvas>
-    </div>
-</div>
 
-<!-- Metrics -->
-<div class="card mb-4">
-    <div class="card-header bg-success text-white">Metrikler</div>
+<!-- CANLI GRAFİKLER -->
+<h2 class="mb-3">Canlı Ölçümler</h2>
+
+<div class="charts-container">
+
+    <div class="chart-box">
+        <h4>CPU Kullanımı (%)</h4>
+        <canvas id="cpuChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+        <h4>GPU Kullanımı (%)</h4>
+        <canvas id="gpuChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+        <h4>RAM Kullanımı (MB)</h4>
+        <canvas id="ramChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+        <h4>Güç Tüketimi (W)</h4>
+        <canvas id="powerChart"></canvas>
+    </div>
+
+</div> <!-- charts-container TEK kapanış -->
+
+
+<!-- ESKİ METRİKLER -->
+<div class="card mb-4 mt-4">
+    <div class="card-header bg-success text-white">Geçmiş Metrikler</div>
     <div class="card-body">
         {% if metrics %}
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th>Zaman</th>
-                        <th>CPU (%)</th>
-                        <th>GPU (%)</th>
-                        <th>Güç (W)</th>
-                        <th>RAM (MB)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for m in metrics %}
-                    <tr>
-                        <td>{{ m.ts }}</td>
-                        <td>{{ m.cpu_util }}</td>
-                        <td>{{ m.gpu_util }}</td>
-                        <td>{{ m.gpu_power_w }}</td>
-                        <td>{{ m.mem_used_mb }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Zaman</th>
+                    <th>CPU (%)</th>
+                    <th>GPU (%)</th>
+                    <th>Güç (W)</th>
+                    <th>RAM (MB)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in metrics %}
+                <tr>
+                    <td>{{ m.ts }}</td>
+                    <td>{{ m.cpu_util }}</td>
+                    <td>{{ m.gpu_util }}</td>
+                    <td>{{ m.gpu_power_w }}</td>
+                    <td>{{ m.mem_used_mb }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% else %}
-            <p class="text-muted">Henüz metrik yok.</p>
+        <p class="text-muted">Henüz metrik yok.</p>
         {% endif %}
     </div>
 </div>
 
-<!-- Emissions -->
-<div class="card mb-4">
-    <div class="card-header bg-warning">Karbon ve Enerji</div>
+
+<!-- Emisyon -->
+<div class="card mb-5">
+    <div class="card-header bg-warning">Karbon & Enerji</div>
     <div class="card-body">
         {% if emission %}
-            <p><strong>Enerji (kWh):</strong> {{ emission.energy_kwh }}</p>
-            <p><strong>Emisyon (kg):</strong> {{ emission.emission_kg }}</p>
-            <p><strong>Bölge Kodu:</strong> {{ emission.region_code }}</p>
+            <p><strong>Enerji:</strong> {{ emission.energy_kwh }}</p>
+            <p><strong>Emisyon:</strong> {{ emission.emission_kg }}</p>
+            <p><strong>Bölge:</strong> {{ emission.region_code }}</p>
         {% else %}
-            <p class="text-muted">Henüz emisyon bilgisi yok.</p>
+            <p class="text-muted">Henüz emisyon yok.</p>
         {% endif %}
     </div>
 </div>
 
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- RUN ID -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        startCharts("{{ run.id }}");
-    });
+    const RUN_ID = "{{ run.id }}";
+</script>
+
+<!-- JS -->
+<script src="{{ url_for('static', path='run_live.js') }}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    startLiveCharts(RUN_ID);
+});
 </script>
 
 {% endblock %}

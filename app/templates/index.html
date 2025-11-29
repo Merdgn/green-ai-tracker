@@ -37,38 +37,6 @@
         </tbody>
     </table>
 
-    <!-- ===== TÜM RUN LİSTESİ ===== -->
-    <h3 class="mb-4">📊 Tüm Çalışmalar (Runs)</h3>
-
-    <table class="table table-hover shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Device ID</th>
-                <th>Model</th>
-                <th>Started</th>
-                <th>Ended</th>
-                <th>Detay</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for run in runs %}
-            <tr>
-                <td>{{ run.id }}</td>
-                <td>{{ run.user_id }}</td>
-                <td>{{ run.device_id }}</td>
-                <td>{{ run.model_name }}</td>
-                <td>{{ run.started_at }}</td>
-                <td>{{ run.ended_at if run.ended_at else "-" }}</td>
-                <td>
-                    <a class="btn btn-primary btn-sm" href="/run/{{ run.id }}">Görüntüle</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

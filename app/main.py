@@ -20,6 +20,8 @@ from app.database import engine, get_db
 from app import models
 from app.routes import auth_routes, user_routes, devices, runs, metrics, emissions, dashboard
 from app.utils.auth import verify_api_key, create_access_token, decode_access_token
+from app.routes import monitor
+
 
 # ============================
 # Template klasörü
@@ -70,6 +72,8 @@ app.include_router(runs.router)
 app.include_router(metrics.router)
 app.include_router(emissions.router)
 app.include_router(dashboard.router)
+app.include_router(monitor.router)
+
 
 
 # ============================
@@ -84,7 +88,7 @@ def get_current_user_from_cookie(
     request: Request,
     db: Session = Depends(get_db),
 ) -> models.User:
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("session_token")  # ← DÜZELTİLMİŞ
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -106,6 +110,7 @@ def get_current_user_from_cookie(
         )
 
     user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
