@@ -2,7 +2,69 @@
 
 {% block content %}
 
-<h2 class="mb-4">Çalışma Detayı (Run #{{ run.id }})</h2>
+<style>
+    .run-hero {
+        background: linear-gradient(135deg, #0f9b0f, #00b4d8);
+        color: #fff;
+        border-radius: 1rem;
+        padding: 1.25rem 1.75rem;
+        margin-top: 1rem;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .run-hero h2 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    /* === GRAFİK KARTLARI === */
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 sütun */
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Tablet / telefonlarda tek sütun */
+    @media (max-width: 992px) {
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .chart-box {
+        background: #ffffff;
+        border-radius: 1rem;
+        padding: 1rem 1.25rem 1.5rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        min-height: 320px;  /* kartın yüksekliğini biraz arttıralım */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chart-box h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #1f2933;
+    }
+
+    .chart-box canvas {
+        width: 100% !important;
+        height: 260px !important;  /* grafiğin kendisini büyüt */
+        max-height: none;
+    }
+
+    .card-header {
+        font-weight: 600;
+    }
+</style>
+
+<div class="run-hero">
+    <h2>⚙️ Çalışma Detayı (Run #{{ run.id }})</h2>
+</div>
 
 <!-- Run Info -->
 <div class="card mb-4">
@@ -16,7 +78,6 @@
         <p><strong>Notlar:</strong> {{ run.notes }}</p>
     </div>
 </div>
-
 
 <!-- CANLI GRAFİKLER -->
 <h2 class="mb-3">Canlı Ölçümler</h2>
@@ -43,16 +104,15 @@
         <canvas id="powerChart"></canvas>
     </div>
 
-</div> <!-- charts-container TEK kapanış -->
-
+</div>
 
 <!-- ESKİ METRİKLER -->
 <div class="card mb-4 mt-4">
     <div class="card-header bg-success text-white">Geçmiş Metrikler</div>
     <div class="card-body">
         {% if metrics %}
-        <table class="table table-bordered table-sm">
-            <thead>
+        <table class="table table-bordered table-sm mb-0">
+            <thead class="table-light">
                 <tr>
                     <th>Zaman</th>
                     <th>CPU (%)</th>
@@ -74,11 +134,10 @@
             </tbody>
         </table>
         {% else %}
-        <p class="text-muted">Henüz metrik yok.</p>
+        <p class="text-muted mb-0">Henüz metrik yok.</p>
         {% endif %}
     </div>
 </div>
-
 
 <!-- Emisyon -->
 <div class="card mb-5">
@@ -89,11 +148,10 @@
             <p><strong>Emisyon:</strong> {{ emission.emission_kg }}</p>
             <p><strong>Bölge:</strong> {{ emission.region_code }}</p>
         {% else %}
-            <p class="text-muted">Henüz emisyon yok.</p>
+            <p class="text-muted mb-0">Henüz emisyon yok.</p>
         {% endif %}
     </div>
 </div>
-
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

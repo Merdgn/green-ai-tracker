@@ -1,79 +1,55 @@
+# app/routes/auth_routes.py
+
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app import models
-from app.utils.auth import verify_api_key, create_access_token, decode_access_token, hash_api_key
+from app.utils.auth import verify_api_key, create_access_token, decode_access_token
 
-templates = Jinja2Templates(directory="app/templates")
+# Bu router sadece API autentikasyonu için
+router = APIRouter(tags=["Auth"])
 
-router = APIRouter()
-
+# Swagger'daki "Authorize" butonuna bilgi vermek için kullanılıyor
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 # ============================
-# API LOGIN SCHEMA
+# 1) API LOGIN SCHEMA
 # ============================
 class LoginRequest(BaseModel):
-    name: str
-    api_key: str
+    name: str       # Kullanıcı adı
+    api_key: str    # API Key
 
 
 # ============================
-# HTML LOGIN PAGE
-# ============================
-@router.get("/login", response_class=HTMLResponse)
-def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
-@router.post("/login", response_class=HTMLResponse)
-def login_submit(
-    request: Request,
-    db: Session = Depends(get_db),
-    name: str = Form(...),
-    api_key: str = Form(...)
-):
-    user = db.query(models.User).filter(models.User.name == name).first()
-
-    if not user or not verify_api_key(api_key, user.api_key_hash):
-        return templates.TemplateResponse(
-            "login.html",
-            {"request": request, "error": "Kullanıcı adı veya API key hatalı."}
-        )
-
-    # Token üret
-    access_token = create_access_token(
-        data={"sub": str(user.id), "role": user.role},
-        expires_delta=timedelta(hours=5),
-    )
-
-    response = RedirectResponse("/", status_code=302)
-    response.set_cookie("session_token", access_token, httponly=True)
-
-    return response
-
-
-# ============================
-# API LOGIN (TRAIN SCRIPT İÇİN)
+# 2) API LOGIN (train_model.py için)
 # ============================
 @router.post("/auth/login")
 def api_login(data: LoginRequest, db: Session = Depends(get_db)):
-    """Train_model.py tarafından kullanılan login."""
+    """
+    train_model.py tarafından kullanılan login endpoint'i.
+    Kullanıcı adına ve API Key'e göre JWT üretir.
+    """
     user = db.query(models.User).filter(models.User.name == data.name).first()
 
     if not user:
-        raise HTTPException(status_code=401, detail="Kullanıcı bulunamadı")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Kullanıcı bulunamadı"
+        )
 
     if not verify_api_key(data.api_key, user.api_key_hash):
-        raise HTTPException(status_code=401, detail="API key hatalı")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API key hatalı"
+        )
 
+    # JWT token üret
     token = create_access_token(
         data={"sub": str(user.id), "role": user.role},
         expires_delta=timedelta(hours=5),
@@ -83,66 +59,37 @@ def api_login(data: LoginRequest, db: Session = Depends(get_db)):
 
 
 # ============================
-# REGISTER PAGE
-# ============================
-@router.get("/register", response_class=HTMLResponse)
-def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
-
-
-@router.post("/register")
-def register_submit(
-    request: Request,
-    db: Session = Depends(get_db),
-    name: str = Form(...),
-    email: str = Form(...),
-    api_key: str = Form(...)
-):
-    # email kontrol
-    exists = db.query(models.User).filter(models.User.email == email).first()
-
-    if exists:
-        return templates.TemplateResponse(
-            "register.html",
-            {"request": request, "error": "Bu email zaten kayıtlı!"}
-        )
-
-    hashed = hash_api_key(api_key)
-
-    user = models.User(
-        name=name,
-        email=email,
-        api_key_hash=hashed,
-        role="user"
-    )
-    db.add(user)
-    db.commit()
-
-    return RedirectResponse("/login", status_code=302)
-
-
-# ============================
-# LOGOUT
-# ============================
-@router.get("/logout")
-def logout():
-    response = RedirectResponse("/login", status_code=302)
-    response.delete_cookie("session_token")
-    return response
-
-
-# ============================
-# TOKEN CHECK (API PROTECTION)
+# 3) BEARER TOKEN'DAN USER ÇIKAR
 # ============================
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ):
+    """
+    Authorization: Bearer <token> içinden kullanıcıyı çözer.
+    API tarafında korumalı endpoint'lerde dependency olarak kullanılır.
+    """
     payload = decode_access_token(token)
 
     if payload is None:
-        raise HTTPException(status_code=401, detail="Geçersiz token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Geçersiz veya süresi dolmuş token",
+        )
 
-    user = db.query(models.User).filter(models.User.id == int(payload["sub"])).first()
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Geçersiz token payload",
+        )
+
+    user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Kullanıcı bulunamadı",
+        )
 
     return user

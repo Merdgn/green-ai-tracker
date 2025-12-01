@@ -2,19 +2,22 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="page-gradient-header">
+    <h2>Dashboard Genel İstatistikler</h2>
+    <p>Modellerinizin enerji ve emisyon durumunu tek ekrandan takip edin.</p>
+</div>
 
-    <h2 class="mb-4">Dashboard Genel İstatistikler</h2>
+<div class="container mb-5">
 
     <!-- ÜST KARTLAR -->
     <div class="row g-3 mb-4">
         <!-- Sistem Canlı İzleme -->
         <div class="col-md-6">
-            <div class="card shadow-sm">
+            <div class="card chart-card">
                 <div class="card-body">
-                    <h5 class="card-title">🖥️ Sistem Canlı İzleme</h5>
-                    <p class="card-text text-muted">
-                        Tüm CPU / GPU / RAM ölçümlerini gerçek zamanlı izle
+                    <h5 class="card-title mb-1">🖥️ Sistem Canlı İzleme</h5>
+                    <p class="card-text text-muted mb-3">
+                        Tüm CPU / GPU / RAM ölçümlerini gerçek zamanlı izle.
                     </p>
                     <a href="/monitor" class="btn btn-primary w-100">Canlı İzleme Paneli</a>
                 </div>
@@ -23,11 +26,11 @@
 
         <!-- Run ID ile Canlı İzleme -->
         <div class="col-md-6">
-            <div class="card shadow-sm">
+            <div class="card chart-card">
                 <div class="card-body">
-                    <h5 class="card-title">🧠 Run ID ile Canlı İzleme</h5>
-                    <p class="card-text text-muted">
-                        Belirli bir çalışmanın detay ve canlı grafiğini görüntüle
+                    <h5 class="card-title mb-1">🧠 Run ID ile Canlı İzleme</h5>
+                    <p class="card-text text-muted mb-3">
+                        Belirli bir çalışmanın detay ve canlı grafiğini görüntüle.
                     </p>
                     <div class="input-group">
                         <input id="runIdInput" type="number" class="form-control" placeholder="Run ID gir" />
@@ -38,37 +41,57 @@
         </div>
     </div>
 
-    <!-- ===== KARTLAR ===== -->
+    <!-- İSTATİSTİK KARTLAR -->
     <div id="stats-cards" class="row g-3 mb-4">
         <!-- JS ile doldurulacak -->
     </div>
 
-    <!-- ===== CPU / GPU ORTALAMA GRAFİKLER ===== -->
-    <div class="row mb-5">
+    <!-- ORTALAMA GRAFİKLER -->
+    <div class="row g-3 mb-5">
         <div class="col-md-6">
-            <canvas id="cpuChart"></canvas>
+            <div class="card chart-card">
+                <div class="chart-card-header">
+                    <h5>CPU Ortalama (%)</h5>
+                    <span class="badge badge-live text-white">Genel ortalama</span>
+                </div>
+                <div class="chart-card-body">
+                    <canvas id="cpuChart" style="height:260px;"></canvas>
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
-            <canvas id="gpuChart"></canvas>
+            <div class="card chart-card">
+                <div class="chart-card-header">
+                    <h5>GPU Ortalama (%)</h5>
+                    <span class="badge badge-live text-white">Genel ortalama</span>
+                </div>
+                <div class="chart-card-body">
+                    <canvas id="gpuChart" style="height:260px;"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ===== SON 5 RUN ===== -->
-    <h3>Son 5 Run</h3>
-    <table class="table table-striped mb-5" id="recentRunsTable">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Model</th>
-                <th>Kullanıcı</th>
-                <th>Başlangıç</th>
-                <th>İncele</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- JS ile doldurulacak -->
-        </tbody>
-    </table>
+    <!-- SON 5 RUN -->
+    <h3 class="section-title">Son 5 Run</h3>
+    <div class="card chart-card">
+        <div class="card-body p-0">
+            <table class="table mb-0" id="recentRunsTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Model</th>
+                        <th>Kullanıcı</th>
+                        <th>Başlangıç</th>
+                        <th>İncele</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JS ile doldurulacak -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
 </div>
 
@@ -82,12 +105,12 @@ fetch("/dashboard/stats")
 
         // ==== KARTLARI YAZDIR ====
         document.getElementById("stats-cards").innerHTML = `
-            <div class="col-md-2"><div class="card p-3 bg-primary text-white"><h5>Kullanıcı</h5><h3>${data.total_users}</h3></div></div>
-            <div class="col-md-2"><div class="card p-3 bg-success text-white"><h5>Cihaz</h5><h3>${data.total_devices}</h3></div></div>
-            <div class="col-md-2"><div class="card p-3 bg-info text-white"><h5>Run</h5><h3>${data.total_runs}</h3></div></div>
-            <div class="col-md-2"><div class="card p-3 bg-warning text-white"><h5>Metrik</h5><h3>${data.total_metrics}</h3></div></div>
-            <div class="col-md-2"><div class="card p-3 bg-danger text-white"><h5>Emisyon (kg)</h5><h3>${data.total_emission_kg.toFixed(4)}</h3></div></div>
-            <div class="col-md-2"><div class="card p-3 bg-dark text-white"><h5>Popüler Model</h5><h4>${data.popular_model.name ?? "-"}</h4></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-primary text-white text-center"><h6>Kullanıcı</h6><h3>${data.total_users}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-success text-white text-center"><h6>Cihaz</h6><h3>${data.total_devices}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-info text-white text-center"><h6>Run</h6><h3>${data.total_runs}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-warning text-white text-center"><h6>Metrik</h6><h3>${data.total_metrics}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-danger text-white text-center"><h6>Emisyon (kg)</h6><h3>${data.total_emission_kg.toFixed(4)}</h3></div></div>
+            <div class="col-md-2"><div class="card p-3 bg-dark text-white text-center"><h6>Popüler Model</h6><h5 class="mb-0">${data.popular_model.name ?? "-"}</h5></div></div>
         `;
 
         // ==== CPU GRAFİK ====
@@ -98,10 +121,14 @@ fetch("/dashboard/stats")
                 datasets: [{
                     label: "CPU (%)",
                     data: [data.avg_cpu],
-                    borderColor: "blue",
-                    borderWidth: 2
+                    borderColor: "#0984e3",
+                    backgroundColor: "rgba(9,132,227,0.15)",
+                    borderWidth: 2,
+                    tension: 0.2,
+                    fill: true
                 }]
-            }
+            },
+            options: { plugins: { legend: { display: false } } }
         });
 
         // ==== GPU GRAFİK ====
@@ -112,10 +139,14 @@ fetch("/dashboard/stats")
                 datasets: [{
                     label: "GPU (%)",
                     data: [data.avg_gpu],
-                    borderColor: "red",
-                    borderWidth: 2
+                    borderColor: "#d63031",
+                    backgroundColor: "rgba(214,48,49,0.15)",
+                    borderWidth: 2,
+                    tension: 0.2,
+                    fill: true
                 }]
-            }
+            },
+            options: { plugins: { legend: { display: false } } }
         });
 
         // ==== SON 5 RUN TABLOSU ====
@@ -134,7 +165,6 @@ fetch("/dashboard/stats")
             `;
         });
         document.querySelector("#recentRunsTable tbody").innerHTML = tbody;
-
     });
 
 // Run ID input -> İncele butonu

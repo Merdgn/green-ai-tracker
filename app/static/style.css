@@ -27,3 +27,55 @@ body {
     margin-top: 10px;
     text-align: center;
 }
+
+
+/* ========== AUTH PAGES (login / register) ========== */
+
+.auth-wrapper {
+    min-height: calc(100vh - 90px); /* navbar yüksekliği çıkarıldı */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+    background: radial-gradient(circle at top left, #e0f9f0 0, #ffffff 55%);
+}
+
+.auth-header h3 {
+    font-weight: 600;
+}
+
+.auth-icon {
+    font-size: 2.4rem;
+}
+
+.auth-input-icon {
+    border-radius: 999px 0 0 999px;
+    font-size: 1.1rem;
+}
+
+.auth-card .form-control {
+    border-radius: 0 999px 999px 0;
+}
+
+.auth-submit-btn {
+    border-radius: 999px;
+    font-weight: 500;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+}
+
+.auth-link {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}

@@ -3,10 +3,13 @@ uvicorn
 python-dotenv
 sqlalchemy
 jinja2
-passlib[bcrypt]
+passlib[argon2]
 python-jose
 pydantic
 psutil
 aiofiles
 python-multipart
 requests
+pynvml
+torch
+torchvision

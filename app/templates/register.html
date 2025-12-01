@@ -1,34 +1,212 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Kayıt Ol | Green AI Tracker</title>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
 
-{% block content %}
-<div class="container mt-5" style="max-width: 450px;">
+    <!-- Login ile aynı stiller -->
+    <style>
+        body.bg-light {
+            background: radial-gradient(circle at top, #e7f8ef 0, #f4f7fb 45%, #f5f5f5 100%);
+        }
 
-    <h3 class="text-center mb-4">📝 Kayıt Ol</h3>
+        .navbar-dark.bg-dark {
+            background: linear-gradient(90deg, #0b3b34, #06416b);
+        }
 
-    <div class="card shadow p-4">
-        <form method="POST" action="/register">
-            <div class="mb-3">
-                <label class="form-label">Kullanıcı Adı</label>
-                <input name="name" type="text" class="form-control" required>
-            </div>
+        .auth-card {
+            border-radius: 18px;
+            overflow: hidden;
+        }
 
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input name="email" type="email" class="form-control" required>
-            </div>
+        .auth-header {
+            background: linear-gradient(120deg, #198754, #0d6efd);
+            color: #fff;
+            padding: 1.75rem 1.5rem 1.25rem;
+        }
 
-            <div class="mb-3">
-                <label class="form-label">API Key</label>
-                <input name="api_key" type="password" class="form-control" required>
-            </div>
+        .auth-icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 0.75rem;
+        }
 
-            {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-            {% endif %}
+        .auth-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
 
-            <button type="submit" class="btn btn-success w-100">Kayıt Ol</button>
-        </form>
+        .card-body {
+            background: #ffffff;
+        }
+
+        .input-group-text {
+            background-color: #ebf6ef;
+            border-color: #cbe4d6;
+        }
+
+        .form-control:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 0.15rem rgba(25, 135, 84, 0.25);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #198754, #1aa567);
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #157347, #178457);
+        }
+
+        .btn-outline-success {
+            border-color: #198754;
+            color: #198754;
+        }
+
+        .btn-outline-success:hover {
+            background-color: #198754;
+            color: #fff;
+        }
+
+        .auth-footer-text {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h5">
+            <span class="me-1">🍃</span> Green AI Tracker
+        </span>
+
+        <div class="d-flex">
+            <a href="/login" class="nav-link text-light me-3">Login</a>
+            <a href="/register" class="nav-link text-light">Register</a>
+        </div>
     </div>
+</nav>
 
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7 col-sm-10">
+            <div class="card shadow-sm border-0 auth-card">
+
+                <!-- RENKLİ ÜST KISIM -->
+                <div class="auth-header text-center">
+                    <div class="auth-icon-circle">
+                        📝
+                    </div>
+                    <h2 class="h4 mb-1">Kayıt Ol</h2>
+                    <p class="mb-0">
+                        Green AI Tracker’i kullanmak için yeni bir hesap oluşturun.
+                    </p>
+                </div>
+
+                <!-- BEYAZ GÖVDE -->
+                <div class="card-body p-4 p-md-4">
+
+                    {% if error %}
+                        <div class="alert alert-danger py-2">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="post" action="/register" class="text-start" autocomplete="off">
+
+                        <div class="mb-3">
+                            <label class="form-label">Kullanıcı Adı</label>
+                            <div class="input-group">
+                                <span class="input-group-text">👤</span>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    class="form-control"
+                                    placeholder="Kullanıcı adınızı girin"
+                                    autocomplete="username"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">📧</span>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    class="form-control"
+                                    placeholder="ornek@mail.com"
+                                    autocomplete="email"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">API Key</label>
+                            <div class="input-group">
+                                <span class="input-group-text">🔑</span>
+                                <input
+                                    id="register-api-key"
+                                    type="password"
+                                    name="api_key"
+                                    class="form-control"
+                                    placeholder="Güçlü bir API key belirleyin"
+                                    autocomplete="new-password"
+                                    required
+                                />
+                                <button
+                                    class="btn btn-outline-success"
+                                    type="button"
+                                    id="toggle-register-api-key"
+                                >
+                                    Göster
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mt-3">
+                            Kayıt Ol
+                        </button>
+                    </form>
+
+                    <p class="mt-4 mb-0 text-muted auth-footer-text text-center">
+                        Zaten hesabın var mı?
+                        <a href="/login">Giriş Yap</a>
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-{% endblock %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("register-api-key");
+    const btn   = document.getElementById("toggle-register-api-key");
+
+    if (input && btn) {
+        btn.addEventListener("click", () => {
+            const isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            btn.textContent = isPassword ? "Gizle" : "Göster";
+        });
+    }
+});
+</script>
+
+</body>
+</html>

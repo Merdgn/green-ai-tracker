@@ -20,7 +20,13 @@ from app.database import engine, get_db
 from app import models
 from app.routes import auth_routes, user_routes, devices, runs, metrics, emissions, dashboard
 from app.routes import monitor  # sistem canlı izleme
-from app.utils.auth import verify_api_key, create_access_token, decode_access_token
+from app.utils.auth import (
+    verify_api_key,
+    create_access_token,
+    decode_access_token,
+    hash_api_key,          
+)
+
 
 # ============================
 # Template klasörü
@@ -124,8 +130,9 @@ def get_current_user_from_cookie(
 # ============================
 # MIDDLEWARE: request.state.current_user
 # ============================
-@app.middleware("request")
+@app.middleware("http")
 async def add_current_user(request: Request, call_next):
+
     """
     Tüm isteklerde cookie'deki token'i çöz ve
     request.state.current_user içine kullanıcıyı koy.
@@ -195,6 +202,61 @@ def login_submit(
     )
 
     return response
+
+# ============================
+# REGISTER PAGE (GET)
+# ============================
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    # İstersen girişliyse dashboard'a at:
+    if getattr(request.state, "current_user", None):
+        return RedirectResponse("/", status_code=302)
+
+    return templates.TemplateResponse(
+        "register.html",
+        {"request": request},
+    )
+
+
+# ============================
+# REGISTER SUBMIT (POST)
+# ============================
+@app.post("/register")
+def register_submit(
+    request: Request,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    email: str = Form(...),
+    api_key: str = Form(...),
+):
+    # Bu email daha önce kullanılmış mı?
+    exists = db.query(models.User).filter(models.User.email == email).first()
+    if exists:
+        return templates.TemplateResponse(
+            "register.html",
+            {
+                "request": request,
+                "error": "Bu email zaten kayıtlı!"
+            },
+        )
+
+    # API key'i hash'le
+    hashed = hash_api_key(api_key)
+
+    # Yeni kullanıcı oluştur
+    user = models.User(
+        name=name,
+        email=email,
+        api_key_hash=hashed,
+        role="user",   # ilk kullanıcı admin olsun istiyorsan burayı "admin" yapabilirsin
+    )
+
+    db.add(user)
+    db.commit()
+
+    # Kayıttan sonra login sayfasına yönlendir
+    return RedirectResponse("/login", status_code=302)
+
 
 
 # ============================
