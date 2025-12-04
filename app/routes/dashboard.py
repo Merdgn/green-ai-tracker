@@ -41,7 +41,7 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     popular_model_name = popular_model[0] if popular_model else None
     popular_model_count = popular_model[1] if popular_model else 0
 
-    # 6) En uzun run
+    # 6) En uzun run (bitişi olanlar arasından)
     longest_run = (
         db.query(models.Run)
         .filter(models.Run.ended_at.isnot(None))
@@ -61,7 +61,7 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
 
         "popular_model": {
             "name": popular_model_name,
-            "count": popular_model_count
+            "count": popular_model_count,
         },
 
         "longest_run": {
@@ -69,16 +69,17 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
             "duration_sec": (
                 (longest_run.ended_at - longest_run.started_at).total_seconds()
                 if longest_run else 0
-            )
+            ),
         },
 
         "recent_runs": [
             {
                 "id": r.id,
                 "model_name": r.model_name,
-                "started_at": r.started_at,
-                "user_id": r.user_id
+                "started_at": r.started_at,   # FastAPI bunu ISO string’e çevirir
+                "ended_at": r.ended_at,       # ← BURAYI EKLEDİK
+                "user_id": r.user_id,
             }
             for r in last_runs
-        ]
+        ],
     }

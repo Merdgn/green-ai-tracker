@@ -1,7 +1,10 @@
+/* === GENEL ARKA PLAN === */
 body {
-    background: #f7f7f7;
+    background: rgb(255,250,250)
+
 }
 
+/* Eski dashboard chart layout'ların kalsın diye bıraktım */
 .charts-wrapper {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -21,18 +24,16 @@ body {
     border-radius: 10px;
 }
 
-
 .subtitle {
     color: #bbb;
     margin-top: 10px;
     text-align: center;
 }
 
-
 /* ========== AUTH PAGES (login / register) ========== */
 
 .auth-wrapper {
-    min-height: calc(100vh - 90px); /* navbar yüksekliği çıkarıldı */
+    min-height: calc(100vh - 90px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -78,4 +79,121 @@ body {
 
 .auth-link:hover {
     text-decoration: underline;
+}
+
+/* ========== DASHBOARD BÜYÜK HEADER ========== */
+/* Monitor sayfasındaki yeşil barın dashboard versiyonu */
+
+.page-gradient-header {
+     background: linear-gradient(135deg, #0f9b0f, #00b4d8);
+        color: #fff;
+        border-radius: 1rem;
+        padding: 1.25rem 1.75rem;
+        margin-top: 1rem;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+.pg-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.7rem;
+}
+
+.pg-title {
+    margin: 0;
+    font-size: 1.55rem;
+    font-weight: 600;
+}
+
+.pg-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+/* ========== DASHBOARD KARTLAR ========== */
+
+.dash-card {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    background-color: #ffffff;
+}
+
+.dash-card-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dash-card-body {
+    padding: 16px 18px 20px 18px;
+}
+
+.badge-live {
+    background: linear-gradient(90deg, #00b894, #00cec9);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    padding: 6px 10px;
+    color: #fff;
+}
+
+/* Küçük istatistik kartları */
+.stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.stat-card {
+    flex: 1 1 140px;
+    border-radius: 12px;
+    padding: 10px 13px;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.stat-small {
+    font-size: 0.95rem;
+}
+
+/* Renkler */
+.stat-users   { background: linear-gradient(135deg, #4c6fff, #7f9fff); }
+.stat-devices { background: linear-gradient(135deg, #00b894, #00cec9); }
+.stat-runs    { background: linear-gradient(135deg, #fd7e14, #ffb347); }
+.stat-metrics { background: linear-gradient(135deg, #6f42c1, #b197fc); }
+.stat-emission{ background: linear-gradient(135deg, #e63946, #ff8fa3); }
+.stat-popular { background: linear-gradient(135deg, #111827, #1f2937); }
+
+.section-title {
+    font-weight: 600;
+}
+
+/* Mobile uyumu */
+@media (max-width: 768px) {
+    .page-gradient-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
