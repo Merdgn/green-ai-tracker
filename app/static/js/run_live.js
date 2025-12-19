@@ -1,4 +1,5 @@
 // app/static/js/run_live.js
+
 let cpuChart, gpuChart, ramChart, powerChart;
 
 function createChart(ctx, label, color) {
@@ -37,16 +38,25 @@ function createChart(ctx, label, color) {
 }
 
 function startLiveCharts(runId) {
+    const cpuCanvas   = document.getElementById("cpuChart");
+    const gpuCanvas   = document.getElementById("gpuChart");
+    const ramCanvas   = document.getElementById("ramChart");
+    const powerCanvas = document.getElementById("powerChart");
 
-    cpuChart   = createChart(document.getElementById("cpuChart"),   "CPU (%)",       "#ff6384");
-    gpuChart   = createChart(document.getElementById("gpuChart"),   "GPU (%)",       "#36a2eb");
-    ramChart   = createChart(document.getElementById("ramChart"),   "RAM (MB)",      "#ffcd56");
-    powerChart = createChart(document.getElementById("powerChart"), "Güç (W)",       "#4bc0c0");
+    if (!cpuCanvas || !gpuCanvas || !ramCanvas || !powerCanvas) {
+        console.error("Chart canvas element(ler)i bulunamadı.");
+        return;
+    }
+
+    cpuChart   = createChart(cpuCanvas,   "CPU (%)",  "#ff6384");
+    gpuChart   = createChart(gpuCanvas,   "GPU (%)",  "#36a2eb");
+    ramChart   = createChart(ramCanvas,   "RAM (MB)", "#ffcd56");
+    powerChart = createChart(powerCanvas, "Güç (W)",  "#4bc0c0");
 
     // Her saniye backend'den metrikleri çek
     setInterval(async () => {
         try {
-            const res  = await fetch(`/runs/${runId}/live`);
+            const res = await fetch(`/runs/${runId}/live`);
             if (!res.ok) {
                 console.error("Live metrics isteği hata:", res.status);
                 return;
@@ -57,7 +67,6 @@ function startLiveCharts(runId) {
                 return;
             }
 
-            // Zaman etiketleri
             const labels = data.metrics.map(m => m.time);
 
             cpuChart.data.labels   = labels;

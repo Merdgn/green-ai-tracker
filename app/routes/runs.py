@@ -10,6 +10,19 @@ from app import models, schemas
 from app.routes.metrics import collect_metrics
 from app.utils.emission_calc import compute_run_energy_and_emission
 
+
+def build_auto_notes(model_name: str, user_id: int | None, device_id: int | None, region_code: str | None):
+    parts = ["auto", f"model={model_name}"]
+    if user_id is not None:
+        parts.append(f"user={user_id}")
+    if device_id is not None:
+        parts.append(f"device={device_id}")
+    if region_code:
+        parts.append(f"region={region_code}")
+    parts.append(datetime.now().strftime("%Y-%m-%d %H:%M"))
+    return " | ".join(parts)
+
+
 router = APIRouter(
     prefix="/runs",
     tags=["Runs"]
@@ -31,7 +44,6 @@ def list_runs(db: Session = Depends(get_db)):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_run(data: dict, db: Session = Depends(get_db)):
     model_name = data.get("model_name")
-
     if not model_name:
         raise HTTPException(status_code=400, detail="model_name gerekli")
 
@@ -42,16 +54,29 @@ def create_run(data: dict, db: Session = Depends(get_db)):
     if not default_user or not default_device:
         raise HTTPException(status_code=400, detail="Varsayılan kullanıcı veya cihaz bulunamadı")
 
+    # İsteğe bağlı: region_code, notes
+    region_code = data.get("region_code") or "TR"
+    notes = data.get("notes")
+
+    if notes is None or str(notes).strip() == "":
+        notes = build_auto_notes(
+            model_name=model_name,
+            user_id=default_user.id,
+            device_id=default_device.id,
+            region_code=region_code,
+        )
+
     run = models.Run(
         user_id=default_user.id,
         device_id=default_device.id,
         model_name=model_name,
+        notes=notes,
     )
     db.add(run)
     db.commit()
     db.refresh(run)
 
-    return {"id": run.id, "model_name": run.model_name}
+    return {"id": run.id, "model_name": run.model_name, "notes": run.notes}
 
 
 # ============================

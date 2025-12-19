@@ -1,4 +1,3 @@
-# main.py
 from datetime import datetime
 
 from fastapi import (
@@ -25,9 +24,8 @@ from app.utils.auth import (
     verify_api_key,
     create_access_token,
     decode_access_token,
-    hash_api_key,          
+    hash_api_key,
 )
-
 
 # ============================
 # Template klasörü
@@ -40,7 +38,6 @@ templates = Jinja2Templates(directory="app/templates")
 app = FastAPI(title="Green AI Tracker")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
 
 # ============================
 # Swagger Bearer Auth
@@ -69,7 +66,6 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-
 # ============================
 # Router'lar
 # ============================
@@ -82,13 +78,10 @@ app.include_router(emissions.router)
 app.include_router(dashboard.router)
 app.include_router(monitor.router)
 
-
-
 # ============================
 # DB tablolarını oluştur
 # ============================
 models.Base.metadata.create_all(bind=engine)
-
 
 # ============================
 # Yardımcı: Cookie'den kullanıcıyı çöz
@@ -128,13 +121,11 @@ def get_current_user_from_cookie(
 
     return user
 
-
 # ============================
 # MIDDLEWARE: request.state.current_user
 # ============================
 @app.middleware("http")
 async def add_current_user(request: Request, call_next):
-
     """
     Tüm isteklerde cookie'deki token'i çöz ve
     request.state.current_user içine kullanıcıyı koy.
@@ -147,7 +138,6 @@ async def add_current_user(request: Request, call_next):
         payload = decode_access_token(token)
         if payload:
             user_id = payload.get("sub")
-            # Kısa bir DB oturumu açıp kullanıcıyı bul
             db_gen = get_db()
             db = next(db_gen)
             try:
@@ -159,7 +149,6 @@ async def add_current_user(request: Request, call_next):
     response = await call_next(request)
     return response
 
-
 # ============================
 # HTML LOGIN PAGE (GET)
 # ============================
@@ -170,7 +159,6 @@ def login_page(request: Request):
         return RedirectResponse("/", status_code=302)
 
     return templates.TemplateResponse("login.html", {"request": request})
-
 
 # ============================
 # HTML LOGIN SUBMIT (POST)
@@ -210,15 +198,10 @@ def login_submit(
 # ============================
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
-    # İstersen girişliyse dashboard'a at:
     if getattr(request.state, "current_user", None):
         return RedirectResponse("/", status_code=302)
 
-    return templates.TemplateResponse(
-        "register.html",
-        {"request": request},
-    )
-
+    return templates.TemplateResponse("register.html", {"request": request})
 
 # ============================
 # REGISTER SUBMIT (POST)
@@ -236,10 +219,7 @@ def register_submit(
     if exists:
         return templates.TemplateResponse(
             "register.html",
-            {
-                "request": request,
-                "error": "Bu email zaten kayıtlı!"
-            },
+            {"request": request, "error": "Bu email zaten kayıtlı!"},
         )
 
     # API key'i hash'le
@@ -250,7 +230,7 @@ def register_submit(
         name=name,
         email=email,
         api_key_hash=hashed,
-        role="user",   # ilk kullanıcı admin olsun istiyorsan burayı "admin" yapabilirsin
+        role="user",
     )
 
     db.add(user)
@@ -258,8 +238,6 @@ def register_submit(
 
     # Kayıttan sonra login sayfasına yönlendir
     return RedirectResponse("/login", status_code=302)
-
-
 
 # ============================
 # LOGOUT
@@ -269,7 +247,6 @@ def logout():
     response = RedirectResponse("/login", status_code=302)
     response.delete_cookie("session_token")
     return response
-
 
 # ============================
 # Dashboard (GENEL ÖZET) – Login ZORUNLU
@@ -283,11 +260,7 @@ def dashboard_page(request: Request):
     if not getattr(request.state, "current_user", None):
         return RedirectResponse("/login", status_code=302)
 
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request},
-    )
-
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # ============================
 # RUN DETAIL PAGE – Login zorunlu
@@ -311,7 +284,7 @@ def run_detail(
     metrics = (
         db.query(models.Metric)
         .filter(models.Metric.run_id == run_id)
-        .order_by(models.Metric.ts.asc())   # created_at yerine ts
+        .order_by(models.Metric.ts.asc())
         .all()
     )
 
@@ -338,8 +311,8 @@ def run_detail(
             {
                 "code": emission.region_code or "TR",
                 "label": f"Türkiye (gerçek bölge: {emission.region_code or 'TR'})",
-                "factor": tr_factor,            # kg CO2e / kWh
-                "co2_kg": total_emission_kg,    # toplam CO2e
+                "factor": tr_factor,
+                "co2_kg": total_emission_kg,
             }
         )
 
@@ -348,12 +321,12 @@ def run_detail(
             {
                 "code": "EU-FR",
                 "label": "AB - Fransa (EU, France)",
-                "factor": 0.06,   # örnek faktör (kg CO2e / kWh)
+                "factor": 0.06,
             },
             {
                 "code": "US-IA",
                 "label": "ABD - Iowa (US, Iowa)",
-                "factor": 0.40,   # örnek faktör (kg CO2e / kWh)
+                "factor": 0.40,
             },
         ]
 
@@ -367,6 +340,84 @@ def run_detail(
                 }
             )
 
+    # === GreenScore (0–100) ===
+    greenscore = None
+    greenscore_comment = None
+
+    if emission and emission.energy_kwh and emission.emission_kg:
+        try:
+            energy_kwh = float(emission.energy_kwh)
+            emission_kg = float(emission.emission_kg)
+            if energy_kwh > 0:
+                intensity = emission_kg / energy_kwh  # kg CO2e / kWh
+
+                # 0.1–0.9 aralığını ölçekleyip 0–100'e map edelim
+                min_i, max_i = 0.1, 0.9
+                x = max(min(intensity, max_i), min_i)
+                greenscore = round(100 - (x - min_i) / (max_i - min_i) * 100)
+
+                if greenscore >= 80:
+                    greenscore_comment = "Çok iyi: düşük karbon yoğunluğu."
+                elif greenscore >= 60:
+                    greenscore_comment = "İyi: enerji verimliliği kabul edilebilir düzeyde."
+                elif greenscore >= 40:
+                    greenscore_comment = "Orta: iyileştirme potansiyeli var."
+                else:
+                    greenscore_comment = "Düşük: karbon yoğunluğu yüksek, optimizasyon gerekli."
+        except Exception:
+            greenscore = None
+            greenscore_comment = None
+
+    # === Kümülatif enerji serisi (kWh) ===
+    energy_series = []
+    if metrics:
+        cumulative_kwh = 0.0
+        prev_ts = None
+        raw_series = []
+
+        for m in metrics:
+            if not m.ts:
+                continue
+
+            # İlk nokta: 0 kWh ile başlasın
+            if prev_ts is None:
+                prev_ts = m.ts
+                raw_series.append(
+                    {
+                        "time": m.ts.strftime("%H:%M:%S"),
+                        "kwh": round(cumulative_kwh, 6),
+                    }
+                )
+                continue
+
+            delta_s = (m.ts - prev_ts).total_seconds()
+            if delta_s < 0:
+                delta_s = 0
+
+            power_w = float(m.gpu_power_w or 0.0)
+            incremental = power_w * delta_s / 3_600_000.0  # Wh -> kWh
+            cumulative_kwh += incremental
+
+            raw_series.append(
+                {
+                    "time": m.ts.strftime("%H:%M:%S"),
+                    "kwh": round(cumulative_kwh, 6),
+                }
+            )
+            prev_ts = m.ts
+
+        # Eğer emisyon tablosunda toplam enerji varsa, seriyi ona scale edelim
+        try:
+            if emission and emission.energy_kwh and cumulative_kwh > 0:
+                target_kwh = float(emission.energy_kwh)
+                scale = target_kwh / cumulative_kwh
+                for p in raw_series:
+                    p["kwh"] = round(p["kwh"] * scale, 6)
+        except Exception:
+            pass
+
+        energy_series = raw_series
+
     # Template'e gönder
     return templates.TemplateResponse(
         "run_detail.html",
@@ -375,7 +426,10 @@ def run_detail(
             "run": run,
             "metrics": metrics,
             "emission": emission,
-            "region_scenarios": region_scenarios,  # 👈 artık bu isimle gidiyor
+            "region_scenarios": region_scenarios,
+            "greenscore": greenscore,
+            "greenscore_comment": greenscore_comment,
+            "energy_series": energy_series,
         },
     )
 

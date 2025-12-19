@@ -3,8 +3,22 @@
 {% block content %}
 
 <style>
+        /* === Geçmiş Metrikler kartı başlığı – gradient === */
+    .metrics-card {
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .metrics-header {
+        background: linear-gradient(135deg, #00b4d8, #22c55e);
+        color: #f9fafb;
+        font-weight: 600;
+    }
+
     .run-hero {
-        background: linear-gradient(135deg, #0f9b0f, #00b4d8);
+        background: linear-gradient(135deg, #0b4c59, #2a7345);
         color: #fff;
         border-radius: 1rem;
         padding: 1.25rem 1.75rem;
@@ -15,7 +29,7 @@
 
     .run-hero h2 {
         margin: 0;
-        font-weight: 600;
+        font-weight: 600;     
     }
 
     .charts-container {
@@ -58,23 +72,141 @@
     .card-header {
         font-weight: 600;
     }
+
+    /* === Karbon & Enerji üst kartı – MAVİ / YEŞİL === */
+
+    .energy-card {
+        background: linear-gradient(135deg,
+            rgba(34, 197, 94, 0.10),
+            rgba(56, 189, 248, 0.18)
+        );
+        border-radius: 1.25rem;
+        border: 1px solid rgba(56, 189, 248, 0.50);
+        box-shadow: 0 18px 45px rgba(15, 118, 110, 0.20);
+    }
+
+    .energy-header {
+        background: linear-gradient(120deg, hsl(199, 89%, 48%), #22c55e);
+        color: #f9fafb;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(248, 250, 252, 0.25);
+    }
+
+    .energy-stat-row {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .energy-stat-box {
+        background: #f9fafb;
+        border-radius: 1rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .energy-stat-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
+
+    .energy-stat-value {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #0f172a;
+    }
+
+    .region-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #0f172a;
+        margin-bottom: 0.25rem;
+    }
+
+    .region-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: #e0f2fe;
+        color: #075985;
+        border: 1px solid rgba(56, 189, 248, 0.9);
+    }
+
+    .region-table thead {
+        background: #e0f2fe;
+    }
+
+    .region-table tbody tr:hover {
+        background: #ecfdf5;
+    }
+
+    /* === GreenScore & Kümülatif Enerji – MAVİ / YEŞİL === */
+
+    .greenscore-card {
+        background: linear-gradient(135deg, #ecfdf3, #eff6ff);
+        border-radius: 1.25rem;
+        border: 1px solid rgba(34, 197, 94, 0.5);
+        box-shadow: 0 18px 45px rgba(34, 197, 94, 0.20);
+    }
+
+    .greenscore-header {
+        background: linear-gradient(135deg, #16a34a, #0ea5e9);
+        color: #f9fafb;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(248, 250, 252, 0.18);
+    }
+
+    .greenscore-value {
+        font-size: 2.7rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.4rem;
+        color: #16a34a;
+    }
+
+    .greenscore-sub {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .energy-chart-card {
+        background: #ffffff;
+        border-radius: 1.25rem;
+        border: 1px solid rgba(14, 165, 233, 0.45);
+        box-shadow: 0 18px 45px rgba(37, 99, 235, 0.18);
+    }
+
+    .energy-chart-header {
+        background: linear-gradient(135deg, #0ea5e9, #22c55e);
+        color: #f9fafb;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(248, 250, 252, 0.18);
+    }
 </style>
+
 
 <div class="run-hero">
     <h2>⚙️ Çalışma Detayı (Run #{{ run.id }})</h2>
+    <!-- JS'in okuyacağı gizli alan -->
     <input type="hidden" id="runIdValue" value="{{ run.id }}">
 </div>
 
 <!-- Run Info -->
 <div class="card mb-4">
-    <div class="card-header bg-primary text-white">Run Bilgileri</div>
+    <div class="card-header run-info-header">Run Bilgileri</div>
     <div class="card-body">
         <p><strong>Model:</strong> {{ run.model_name }}</p>
         <p><strong>Cihaz ID:</strong> {{ run.device_id }}</p>
         <p><strong>Kullanıcı ID:</strong> {{ run.user_id }}</p>
         <p><strong>Başlangıç:</strong> {{ run.started_at }}</p>
         <p><strong>Bitiş:</strong> {{ run.ended_at }}</p>
-        <p><strong>Notlar:</strong> {{ run.notes }}</p>
+        <p><strong>Notlar:</strong> {{ run.notes or "Otomatik not: not girilmedi" }}</p>
     </div>
 </div>
 
@@ -104,8 +236,8 @@
 </div>
 
 <!-- GEÇMİŞ METRİKLER -->
-<div class="card mb-4 mt-4">
-    <div class="card-header bg-success text-white">Geçmiş Metrikler</div>
+<div class="card mb-4 mt-4 metrics-card">
+    <div class="card-header metrics-header">Geçmiş Metrikler</div>
     <div class="card-body">
         {% if metrics %}
         <table class="table table-bordered table-sm mb-0">
@@ -137,28 +269,59 @@
 </div>
 
 <!-- KARBON & ENERJİ + BÖLGESEL KARŞILAŞTIRMA -->
-<div class="card mb-5">
-    <div class="card-header bg-warning">Karbon & Enerji</div>
+<div class="card mb-4 shadow-sm energy-card">
+    <div class="card-header energy-header">Karbon & Enerji</div>
     <div class="card-body">
         {% if emission %}
-            <p><strong>Enerji:</strong> {{ emission.energy_kwh }}</p>
-            <p><strong>Emisyon:</strong> {{ emission.emission_kg }}</p>
-            <p><strong>Bölge:</strong> {{ emission.region_code }}</p>
+            <div class="row energy-stat-row text-center text-md-start">
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <div class="energy-stat-box">
+                        <div class="energy-stat-label">Enerji (kWh)</div>
+                        <div class="energy-stat-value">
+                            {{ "%.8f"|format(emission.energy_kwh) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <div class="energy-stat-box">
+                        <div class="energy-stat-label">Emisyon (kg CO₂e)</div>
+                        <div class="energy-stat-value">
+                            {{ "%.8f"|format(emission.emission_kg) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="energy-stat-box">
+                        <div class="energy-stat-label">Bölge</div>
+                        <div class="energy-stat-value">
+                            {{ emission.region_code }}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <hr>
-            <h5 class="mt-3">Bölgesel Karşılaştırma</h5>
+            <hr class="mt-4 mb-3">
+
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="region-title">
+                    Bölgesel Karşılaştırma
+                </div>
+                <span class="region-badge">
+                    Senaryo Analizi
+                </span>
+            </div>
             <p class="text-muted small mb-2">
                 Bu eğitimi farklı bölgelerde çalıştırsaydınız tahmini CO₂e değerleri şöyle olurdu:
             </p>
 
             {% if region_scenarios %}
             <div class="table-responsive">
-                <table class="table table-sm table-bordered mb-0">
-                    <thead class="table-light">
+                <table class="table table-sm table-bordered align-middle mb-0 region-table">
+                    <thead>
                         <tr>
-                            <th>Bölge</th>
-                            <th>Faktör (kg CO₂e / kWh)</th>
-                            <th>Tahmini Emisyon (kg)</th>
+                            <th style="width: 40%;">Bölge</th>
+                            <th style="width: 25%;">Faktör (kg CO₂e / kWh)</th>
+                            <th style="width: 35%;">Tahmini Emisyon (kg)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -189,6 +352,39 @@
     </div>
 </div>
 
+<!-- GREENSCORE + KÜMÜLATİF ENERJİ GRAFİĞİ -->
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 greenscore-card">
+            <div class="card-header greenscore-header">GreenScore</div>
+            <div class="card-body">
+                {% if greenscore is not none %}
+                    <p class="greenscore-value mb-1">{{ greenscore }}</p>
+                    <p class="greenscore-sub mb-2">
+                        0–100 aralığında; 100 en düşük karbon ayak izi / en verimli çalışmayı ifade eder.
+                    </p>
+                    <p class="mb-0">{{ greenscore_comment }}</p>
+                {% else %}
+                    <p class="text-muted mb-0">GreenScore hesaplamak için yeterli veri yok.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8 mt-4 mt-md-0">
+        <div class="card h-100 energy-chart-card">
+            <div class="card-header energy-chart-header">Kümülatif Enerji (kWh)</div>
+            <div class="card-body">
+                {% if energy_series and energy_series|length > 0 %}
+                    <canvas id="energyChart" style="width: 100%; height: 260px;"></canvas>
+                {% else %}
+                    <p class="text-muted mb-0">Enerji grafiği için yeterli veri yok.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -196,19 +392,61 @@
 <script src="{{ url_for('static', path='js/run_live.js') }}?v=2" defer></script>
 
 <script>
+  // Python'dan gelen enerji serisini JS tarafına al
+  const energySeries = JSON.parse(`{{ energy_series | tojson | safe }}`);
+
   document.addEventListener("DOMContentLoaded", () => {
     const hidden = document.getElementById("runIdValue");
     const runIdValue = hidden ? Number(hidden.value) : null;
 
     if (!runIdValue) {
         console.error("RUN_ID bulunamadı.");
-        return;
+    } else {
+        if (typeof startLiveCharts === "function") {
+            startLiveCharts(runIdValue);
+        } else {
+            console.error("startLiveCharts fonksiyonu bulunamadı – run_live.js yüklenemedi.");
+        }
     }
 
-    if (typeof startLiveCharts === "function") {
-        startLiveCharts(runIdValue);
-    } else {
-        console.error("startLiveCharts fonksiyonu bulunamadı – run_live.js yüklenemedi.");
+    // Kümülatif enerji grafiğini çiz
+    if (energySeries && energySeries.length > 0) {
+        const energyCanvas = document.getElementById("energyChart");
+        if (energyCanvas) {
+            const labels = energySeries.map(p => p.time);
+            const values = energySeries.map(p => p.kwh);
+
+            new Chart(energyCanvas, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Kümülatif Enerji (kWh)",
+                        data: values,
+                        borderColor: "#0ea5e9",
+                        backgroundColor: "rgba(56, 189, 248, 0.18)",
+                        pointBackgroundColor: "#22c55e",
+                        pointRadius: 3,
+                        borderWidth: 2,
+                        tension: 0.25,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: { color: "#666" }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: "#666" }
+                        }
+                    }
+                }
+            });
+        }
     }
   });
 </script>
