@@ -298,16 +298,76 @@ def run_detail(
     request: Request,
     db: Session = Depends(get_db),
 ):
+    # Login kontrolü
     if not getattr(request.state, "current_user", None):
         return RedirectResponse("/login", status_code=302)
 
+    # Run kaydı
     run = db.query(models.Run).filter(models.Run.id == run_id).first()
     if not run:
         raise HTTPException(status_code=404, detail="Run bulunamadı")
 
-    metrics = db.query(models.Metric).filter(models.Metric.run_id == run_id).all()
-    emission = db.query(models.Emission).filter(models.Emission.run_id == run_id).first()
+    # Metrikler (ts'e göre sırala)
+    metrics = (
+        db.query(models.Metric)
+        .filter(models.Metric.run_id == run_id)
+        .order_by(models.Metric.ts.asc())   # created_at yerine ts
+        .all()
+    )
 
+    # Emisyon kaydı
+    emission = (
+        db.query(models.Emission)
+        .filter(models.Emission.run_id == run_id)
+        .first()
+    )
+
+    # === BÖLGESEL KARŞILAŞTIRMA SENARYOLARI ===
+    region_scenarios = []
+
+    if emission and emission.energy_kwh:
+        total_energy_kwh = float(emission.energy_kwh or 0.0)
+        total_emission_kg = float(emission.emission_kg or 0.0)
+
+        # 1) TR – veritabanındaki gerçek değer (faktör: kg CO2e / kWh)
+        tr_factor = None
+        if total_energy_kwh > 0:
+            tr_factor = total_emission_kg / total_energy_kwh
+
+        region_scenarios.append(
+            {
+                "code": emission.region_code or "TR",
+                "label": f"Türkiye (gerçek bölge: {emission.region_code or 'TR'})",
+                "factor": tr_factor,            # kg CO2e / kWh
+                "co2_kg": total_emission_kg,    # toplam CO2e
+            }
+        )
+
+        # 2) Senaryo bölgeleri (aynı enerji, farklı emisyon faktörü)
+        scenario_regions = [
+            {
+                "code": "EU-FR",
+                "label": "AB - Fransa (EU, France)",
+                "factor": 0.06,   # örnek faktör (kg CO2e / kWh)
+            },
+            {
+                "code": "US-IA",
+                "label": "ABD - Iowa (US, Iowa)",
+                "factor": 0.40,   # örnek faktör (kg CO2e / kWh)
+            },
+        ]
+
+        for reg in scenario_regions:
+            region_scenarios.append(
+                {
+                    "code": reg["code"],
+                    "label": reg["label"],
+                    "factor": reg["factor"],
+                    "co2_kg": total_energy_kwh * reg["factor"],
+                }
+            )
+
+    # Template'e gönder
     return templates.TemplateResponse(
         "run_detail.html",
         {
@@ -315,9 +375,9 @@ def run_detail(
             "run": run,
             "metrics": metrics,
             "emission": emission,
+            "region_scenarios": region_scenarios,  # 👈 artık bu isimle gidiyor
         },
     )
-
 
 # ============================
 # LIST PAGES FOR RUNS / DEVICES / USERS – Login zorunlu

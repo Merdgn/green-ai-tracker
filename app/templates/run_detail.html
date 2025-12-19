@@ -18,15 +18,13 @@
         font-weight: 600;
     }
 
-    /* === GRAFİK KARTLARI === */
     .charts-container {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 sütun */
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
-    /* Tablet / telefonlarda tek sütun */
     @media (max-width: 992px) {
         .charts-container {
             grid-template-columns: 1fr;
@@ -64,7 +62,6 @@
 
 <div class="run-hero">
     <h2>⚙️ Çalışma Detayı (Run #{{ run.id }})</h2>
-    <!-- JS'in okuyacağı gizli alan -->
     <input type="hidden" id="runIdValue" value="{{ run.id }}">
 </div>
 
@@ -85,7 +82,6 @@
 <h2 class="mb-3">Canlı Ölçümler</h2>
 
 <div class="charts-container">
-
     <div class="chart-box">
         <h4>CPU Kullanımı (%)</h4>
         <canvas id="cpuChart"></canvas>
@@ -105,10 +101,9 @@
         <h4>Güç Tüketimi (W)</h4>
         <canvas id="powerChart"></canvas>
     </div>
-
 </div>
 
-<!-- ESKİ METRİKLER -->
+<!-- GEÇMİŞ METRİKLER -->
 <div class="card mb-4 mt-4">
     <div class="card-header bg-success text-white">Geçmiş Metrikler</div>
     <div class="card-body">
@@ -141,7 +136,7 @@
     </div>
 </div>
 
-<!-- Emisyon -->
+<!-- KARBON & ENERJİ + BÖLGESEL KARŞILAŞTIRMA -->
 <div class="card mb-5">
     <div class="card-header bg-warning">Karbon & Enerji</div>
     <div class="card-body">
@@ -149,6 +144,45 @@
             <p><strong>Enerji:</strong> {{ emission.energy_kwh }}</p>
             <p><strong>Emisyon:</strong> {{ emission.emission_kg }}</p>
             <p><strong>Bölge:</strong> {{ emission.region_code }}</p>
+
+            <hr>
+            <h5 class="mt-3">Bölgesel Karşılaştırma</h5>
+            <p class="text-muted small mb-2">
+                Bu eğitimi farklı bölgelerde çalıştırsaydınız tahmini CO₂e değerleri şöyle olurdu:
+            </p>
+
+            {% if region_scenarios %}
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Bölge</th>
+                            <th>Faktör (kg CO₂e / kWh)</th>
+                            <th>Tahmini Emisyon (kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in region_scenarios %}
+                        <tr>
+                            <td>{{ s.label }}</td>
+                            <td>
+                                {% if s.factor is not none %}
+                                    {{ "%.4f"|format(s.factor) }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.6f"|format(s.co2_kg) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">
+                Bölgesel senaryo hesaplanamadı.
+            </p>
+            {% endif %}
         {% else %}
             <p class="text-muted mb-0">Henüz emisyon yok.</p>
         {% endif %}
