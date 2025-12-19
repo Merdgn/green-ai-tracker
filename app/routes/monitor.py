@@ -280,3 +280,21 @@ def monitor_page(request: Request):
 def monitor_live():
     with _lock:
         return JSONResponse(dict(_state))
+
+
+@router.post("/monitor/reset")
+def monitor_reset():
+    """
+    Sistem canlı izleme panelindeki enerji / CO2 sayaçlarını sıfırlar.
+    CPU/GPU anlık değerleri aynı kalır, sadece birikmiş enerji ve emisyonlar 0 yapılır.
+    """
+    with _lock:
+        _state["energy_kwh_total"] = 0.0
+        _state["energy_kwh_gpu"] = 0.0
+        _state["co2_total_kg"] = 0.0
+        _state["co2_gpu_kg"] = 0.0
+
+        # İstersen 'ts'yi de güncelleyebiliriz – şart değil ama mantıklı:
+        _state["ts"] = time.time()
+
+    return JSONResponse({"ok": True})

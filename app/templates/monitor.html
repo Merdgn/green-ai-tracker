@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+
 {% block content %}
 
 <style>
@@ -11,32 +12,36 @@
     margin-bottom: 1.75rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  .monitor-hero-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-    display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: 1rem;
   }
-  .monitor-hero-sub {
+
+  .monitor-hero h2 {
     margin: 0;
-    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .monitor-hero p {
+    margin: 0.25rem 0 0;
     opacity: 0.9;
   }
-  .monitor-grid {
+
+  .charts-container {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
   }
+
   @media (max-width: 992px) {
-    .monitor-grid { grid-template-columns: 1fr; }
+    .charts-container {
+      grid-template-columns: 1fr;
+    }
   }
-  .metric-card {
+
+  .chart-box {
     background: #ffffff;
     border-radius: 1rem;
     padding: 1rem 1.25rem 1.5rem;
@@ -46,76 +51,108 @@
     display: flex;
     flex-direction: column;
   }
-  .metric-title {
+
+  .chart-box h4 {
     font-size: 1rem;
     font-weight: 600;
-    color: #1f2933;
     margin-bottom: 0.75rem;
+    color: #1f2933;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    align-items: center;
   }
-  .metric-title small { font-size: 0.75rem; }
-  .metric-card canvas {
+
+  .chart-box canvas {
     width: 100% !important;
     height: 260px !important;
     max-height: none;
   }
 </style>
 
-<div class="container mt-4">
-  <div class="monitor-hero">
-    <div class="monitor-hero-title">
-      <span>🖥️ Sistem Canlı İzleme Paneli</span>
-    </div>
-    <p class="monitor-hero-sub">
-      CPU / GPU / RAM değerleri her 1 saniyede bir otomatik güncellenir.
+<div class="monitor-hero">
+  <div>
+    <h2>💻 Sistem Canlı İzleme Paneli</h2>
+    <p>CPU / GPU / RAM değerleri her 1 saniyede bir otomatik güncellenir.</p>
+    <p class="mt-2 mb-0">
+      Toplam CO2e:
+      <strong id="co2TotalValue">0.000000</strong> kg
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      GPU CO2e:
+      <strong id="co2GpuValue">0.000000</strong> kg
     </p>
   </div>
-
-<div style="margin: 10px 0 20px 0;">
-  Toplam CO2e: <b><span id="co2TotalValue">0.000000</span> kg</b><br>
-  GPU CO2e: <b><span id="co2GpuValue">0.000000</span> kg</b>
-</div>
-
-
-  <div class="monitor-grid">
-    <div class="metric-card">
-      <div class="metric-title">
-        <span>CPU Kullanımı (%)</span>
-        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-      </div>
-      <canvas id="cpuChart"></canvas>
-    </div>
-
-    <div class="metric-card">
-      <div class="metric-title">
-        <span>GPU Kullanımı (%)</span>
-        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-      </div>
-      <canvas id="gpuChart"></canvas>
-    </div>
-
-    <div class="metric-card">
-      <div class="metric-title">
-        <span>RAM Kullanımı (MB)</span>
-        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-      </div>
-      <canvas id="ramChart"></canvas>
-    </div>
-
-    <div class="metric-card">
-      <div class="metric-title">
-        <span>GPU Güç Tüketimi (W)</span>
-        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-      </div>
-      <canvas id="powerChart"></canvas>
-    </div>
+  <div>
+    <button id="resetEnergyBtn" class="btn btn-outline-light btn-sm">
+      Sayaçları Sıfırla
+    </button>
   </div>
 </div>
 
+<div class="charts-container">
+  <div class="chart-box">
+    <h4>
+      <span>CPU Kullanımı (%)</span>
+      <span class="badge bg-light text-dark">Gerçek zamanlı</span>
+    </h4>
+    <canvas id="cpuChart"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h4>
+      <span>GPU Kullanımı (%)</span>
+      <span class="badge bg-light text-dark">Gerçek zamanlı</span>
+    </h4>
+    <canvas id="gpuChart"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h4>
+      <span>RAM Kullanımı (MB)</span>
+      <span class="badge bg-light text-dark">Gerçek zamanlı</span>
+    </h4>
+    <canvas id="ramChart"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h4>
+      <span>GPU Güç Tüketimi (W)</span>
+      <span class="badge bg-light text-dark">Gerçek zamanlı</span>
+    </h4>
+    <canvas id="powerChart"></canvas>
+  </div>
+</div>
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ url_for('static', path='js/monitor_live.js') }}?v=3" defer></script>
+
+<!-- Canlı izleme JS -->
+<script src="{{ url_for('static', path='js/monitor_live.js') }}?v=2" defer></script>
+
+<script>
+  // Sayaç sıfırlama butonu
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("resetEnergyBtn");
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+      const ok = confirm("Enerji ve CO₂ sayaçlarını sıfırlamak istediğinize emin misiniz?");
+      if (!ok) return;
+
+      try {
+        await fetch("/monitor/reset", {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        });
+        // En temiz çözüm: sayfayı tazeleyip grafikleri ve sayaçları sıfırdan başlatmak
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("Sayaçlar sıfırlanırken bir hata oluştu.");
+      }
+    });
+  });
+</script>
 
 {% endblock %}
