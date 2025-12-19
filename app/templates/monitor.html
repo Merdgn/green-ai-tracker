@@ -1,198 +1,121 @@
 {% extends "layout.html" %}
-
 {% block content %}
 
 <style>
-    /* Üst başlık bandı */
-    .monitor-hero {
-        background: linear-gradient(135deg, #0f9b0f, #00b4d8);
-        color: #fff;
-        border-radius: 1rem;
-        padding: 1.25rem 1.75rem;
-        margin-top: 1rem;
-        margin-bottom: 1.75rem;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .monitor-hero-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .monitor-hero-sub {
-        margin: 0;
-        font-size: 0.95rem;
-        opacity: 0.9;
-    }
-
-    /* Grafik kartlarını düzenle */
-    .monitor-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 sütun */
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
-    }
-
-    /* Tablet / mobilde tek sütun */
-    @media (max-width: 992px) {
-        .monitor-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .metric-card {
-        background: #ffffff;
-        border-radius: 1rem;
-        padding: 1rem 1.25rem 1.5rem;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e5e7eb;
-        min-height: 320px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .metric-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1f2933;
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-    }
-
-    .metric-title span.label {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .metric-title small {
-        font-size: 0.75rem;
-    }
-
-    .metric-card canvas {
-        width: 100% !important;
-        height: 260px !important;   /* Grafiği büyütüyoruz */
-        max-height: none;
-    }
+  .monitor-hero {
+    background: linear-gradient(135deg, #0f9b0f, #00b4d8);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 1.25rem 1.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .monitor-hero-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .monitor-hero-sub {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+  }
+  .monitor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  @media (max-width: 992px) {
+    .monitor-grid { grid-template-columns: 1fr; }
+  }
+  .metric-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+  }
+  .metric-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2933;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .metric-title small { font-size: 0.75rem; }
+  .metric-card canvas {
+    width: 100% !important;
+    height: 260px !important;
+    max-height: none;
+  }
 </style>
 
 <div class="container mt-4">
+  <div class="monitor-hero">
+    <div class="monitor-hero-title">
+      <span>🖥️ Sistem Canlı İzleme Paneli</span>
+    </div>
+    <p class="monitor-hero-sub">
+      CPU / GPU / RAM değerleri her 1 saniyede bir otomatik güncellenir.
+    </p>
+  </div>
 
-    <!-- ÜST BANT -->
-    <div class="monitor-hero">
-        <div class="monitor-hero-title">
-            <span>🖥️ Sistem Canlı İzleme Paneli</span>
-        </div>
-        <p class="monitor-hero-sub">
-            CPU / GPU / RAM değerleri her 1 saniyede bir otomatik güncellenir.
-        </p>
+<div style="margin: 10px 0 20px 0;">
+  Toplam CO2e: <b><span id="co2TotalValue">0.000000</span> kg</b><br>
+  GPU CO2e: <b><span id="co2GpuValue">0.000000</span> kg</b>
+</div>
+
+
+  <div class="monitor-grid">
+    <div class="metric-card">
+      <div class="metric-title">
+        <span>CPU Kullanımı (%)</span>
+        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
+      </div>
+      <canvas id="cpuChart"></canvas>
     </div>
 
-    <!-- GRAFİKLER -->
-    <div class="monitor-grid">
-
-        <div class="metric-card">
-            <div class="metric-title">
-                <span class="label">CPU Kullanımı (%)</span>
-                <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-            </div>
-            <canvas id="cpuChart"></canvas>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-title">
-                <span class="label">GPU Kullanımı (%)</span>
-                <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-            </div>
-            <canvas id="gpuChart"></canvas>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-title">
-                <span class="label">RAM Kullanımı (MB)</span>
-                <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-            </div>
-            <canvas id="ramChart"></canvas>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-title">
-                <span class="label">GPU Güç Tüketimi (W)</span>
-                <small class="badge bg-light text-muted">Gerçek zamanlı</small>
-            </div>
-            <canvas id="powerChart"></canvas>
-        </div>
-
+    <div class="metric-card">
+      <div class="metric-title">
+        <span>GPU Kullanımı (%)</span>
+        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
+      </div>
+      <canvas id="gpuChart"></canvas>
     </div>
+
+    <div class="metric-card">
+      <div class="metric-title">
+        <span>RAM Kullanımı (MB)</span>
+        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
+      </div>
+      <canvas id="ramChart"></canvas>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-title">
+        <span>GPU Güç Tüketimi (W)</span>
+        <small class="badge bg-light text-muted">Gerçek zamanlı</small>
+      </div>
+      <canvas id="powerChart"></canvas>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-let cpuChart, gpuChart, ramChart, powerChart;
-
-function createChart(ctx, label, color) {
-    return new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: [],
-            datasets: [{
-                label: label,
-                data: [],
-                borderColor: color,
-                borderWidth: 2,
-                tension: 0.2
-            }]
-        },
-        options: {
-            responsive: true,
-            animation: false,
-            scales: {
-                x: { ticks: { color: "#666" } },
-                y: { ticks: { color: "#666" } },
-            }
-        }
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    cpuChart   = createChart(document.getElementById("cpuChart"),   "CPU (%)",  "#ff6384");
-    gpuChart   = createChart(document.getElementById("gpuChart"),   "GPU (%)",  "#36a2eb");
-    ramChart   = createChart(document.getElementById("ramChart"),   "RAM (MB)", "#ffcd56");
-    powerChart = createChart(document.getElementById("powerChart"), "Güç (W)",  "#4bc0c0");
-
-    setInterval(async () => {
-        const res  = await fetch("/monitor/live");
-        const data = await res.json();
-
-        const t = new Date().toLocaleTimeString();  // zaman etiketi
-
-        cpuChart.data.labels.push(t);
-        gpuChart.data.labels.push(t);
-        ramChart.data.labels.push(t);
-        powerChart.data.labels.push(t);
-
-        cpuChart.data.datasets[0].data.push(data.cpu);
-        gpuChart.data.datasets[0].data.push(data.gpu);
-        ramChart.data.datasets[0].data.push(data.ram);
-        powerChart.data.datasets[0].data.push(data.power);
-
-        cpuChart.update();
-        gpuChart.update();
-        ramChart.update();
-        powerChart.update();
-    }, 1000);
-});
-</script>
+<script src="{{ url_for('static', path='js/monitor_live.js') }}?v=3" defer></script>
 
 {% endblock %}

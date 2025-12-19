@@ -39,7 +39,7 @@
         padding: 1rem 1.25rem 1.5rem;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
         border: 1px solid #e5e7eb;
-        min-height: 320px;  /* kartın yüksekliğini biraz arttıralım */
+        min-height: 320px;
         display: flex;
         flex-direction: column;
     }
@@ -53,7 +53,7 @@
 
     .chart-box canvas {
         width: 100% !important;
-        height: 260px !important;  /* grafiğin kendisini büyüt */
+        height: 260px !important;
         max-height: none;
     }
 
@@ -64,6 +64,8 @@
 
 <div class="run-hero">
     <h2>⚙️ Çalışma Detayı (Run #{{ run.id }})</h2>
+    <!-- JS'in okuyacağı gizli alan -->
+    <input type="hidden" id="runIdValue" value="{{ run.id }}">
 </div>
 
 <!-- Run Info -->
@@ -156,18 +158,25 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- RUN ID -->
-<script>
-    const RUN_ID = "{{ run.id }}";
-</script>
-
-<!-- JS -->
-<script src="{{ url_for('static', path='run_live.js') }}"></script>
+<!-- Canlı grafik JS'i -->
+<script src="{{ url_for('static', path='js/run_live.js') }}?v=2" defer></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    startLiveCharts(RUN_ID);
-});
+  document.addEventListener("DOMContentLoaded", () => {
+    const hidden = document.getElementById("runIdValue");
+    const runIdValue = hidden ? Number(hidden.value) : null;
+
+    if (!runIdValue) {
+        console.error("RUN_ID bulunamadı.");
+        return;
+    }
+
+    if (typeof startLiveCharts === "function") {
+        startLiveCharts(runIdValue);
+    } else {
+        console.error("startLiveCharts fonksiyonu bulunamadı – run_live.js yüklenemedi.");
+    }
+  });
 </script>
 
 {% endblock %}
