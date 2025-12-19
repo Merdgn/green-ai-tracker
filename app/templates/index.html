@@ -129,7 +129,15 @@ fetch("/dashboard/stats")
         // =========================
         // RENKLİ KÜÇÜK KARTLAR
         // =========================
-        document.getElementById("stats-grid").innerHTML = `
+        const statsGrid = document.getElementById("stats-grid");
+
+        const avgEnergy = data.avg_energy_per_model_kwh ?? 0;
+        const topEmitter = data.top_emitter_model ?? {};
+        const topEmitterText = topEmitter.name
+            ? `${topEmitter.name} (${(topEmitter.total_emission_kg ?? 0).toFixed(4)} kg)`
+            : "-";
+
+        statsGrid.innerHTML = `
             <div class="stat-card stat-users">
                 <span class="stat-label">Kullanıcı</span>
                 <span class="stat-value">${data.total_users}</span>
@@ -150,9 +158,22 @@ fetch("/dashboard/stats")
                 <span class="stat-label">Emisyon (kg)</span>
                 <span class="stat-value">${data.total_emission_kg.toFixed(4)}</span>
             </div>
+
+            <!-- YENİ: Model başına ortalama enerji -->
+            <div class="stat-card stat-avg-energy">
+                <span class="stat-label">Model Başına Ortalama Enerji</span>
+                <span class="stat-value">${avgEnergy.toFixed(6)} kWh</span>
+            </div>
+
+            <!-- YENİ: En çok emisyon üreten model -->
+            <div class="stat-card stat-top-emitter">
+                <span class="stat-label">En Çok Emisyon Üreten Model</span>
+                <span class="stat-value stat-small">${topEmitterText}</span>
+            </div>
+
             <div class="stat-card stat-popular">
                 <span class="stat-label">Popüler Model</span>
-                <span class="stat-value stat-small">${data.popular_model.name ?? "-"}</span>
+                <span class="stat-value stat-small">${data.popular_model?.name ?? "-"}</span>
             </div>
         `;
 
@@ -226,7 +247,6 @@ fetch("/dashboard/stats")
 
         // =========================
         // SON 5 RUN TABLOSU
-        // (backend'den gelen started_at & ended_at kullanılıyor)
         // =========================
         let tbody = "";
         (data.recent_runs || []).forEach(r => {
@@ -247,6 +267,9 @@ fetch("/dashboard/stats")
             `;
         });
         document.querySelector("#recentRunsTable tbody").innerHTML = tbody;
+    })
+    .catch(err => {
+        console.error("Dashboard verisi alınırken hata:", err);
     });
 
 // Run ID input -> İncele butonu

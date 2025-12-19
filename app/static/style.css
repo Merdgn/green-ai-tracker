@@ -1,7 +1,6 @@
 /* === GENEL ARKA PLAN === */
 body {
-    background: rgb(255,250,250)
-
+    background: rgb(255, 250, 250);
 }
 
 /* Eski dashboard chart layout'ların kalsın diye bıraktım */
@@ -85,17 +84,17 @@ body {
 /* Monitor sayfasındaki yeşil barın dashboard versiyonu */
 
 .page-gradient-header {
-     background: linear-gradient(135deg, #0f9b0f, #00b4d8);
-        color: #fff;
-        border-radius: 1rem;
-        padding: 1.25rem 1.75rem;
-        margin-top: 1rem;
-        margin-bottom: 1.75rem;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
+    background: linear-gradient(135deg, #0f9b0f, #00b4d8);
+    color: #fff;
+    border-radius: 1rem;
+    padding: 1.25rem 1.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
 
 .pg-icon {
     width: 46px;
@@ -131,7 +130,7 @@ body {
 
 .dash-card-header {
     padding: 12px 18px;
-    border-bottom: 1px solid rgba(0,0,0,0.04);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -185,6 +184,15 @@ body {
 .stat-metrics { background: linear-gradient(135deg, #6f42c1, #b197fc); }
 .stat-emission{ background: linear-gradient(135deg, #e63946, #ff8fa3); }
 .stat-popular { background: linear-gradient(135deg, #111827, #1f2937); }
+
+/* YENİ KART TİPLERİ */
+.stat-avg-energy {
+    background: linear-gradient(135deg, #16a085, #1abc9c);
+}
+
+.stat-top-emitter {
+    background: linear-gradient(135deg, #b44593, #ff7eb3);
+}
 
 .section-title {
     font-weight: 600;
